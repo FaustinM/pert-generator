@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PERT</title>
+  </head>
+  <body>
+    <div id="pres" class="m-8 px-8 mx-auto max-w-4xl">
+      <h1 class="text-4xl font-bold mb-2">Présentation</h1>
+      <p>Cette application web vous permet de générer un diagramme PERT depuis un fichier excel.</p>
+      <p>
+        Le diagramme généré sera optimisé au maximum et indiquera en rouge le chemin critique.
+      </p>
+      <p>L'algorithme est issue du travail de M.Mouhoub, il a été adapté aux besoins du projet et contient également des améliorations pour mieux correspondre aux attentes des étudiants.</p>
+      <h2 class="text-2xl font-bold my-3">Remerciments</h2>
+      <p>Je tiens à remercier M.Vissault pour son cours du deuxième semestre, ainsi que le projet transverse, qui m'a donné envie de réaliser cette application qui simplifie la réalisation d'un diagramme PERT</p>
+      <h2 class="text-2xl font-bold my-3">Crédits</h2>
+      <ol class="ml-9 list-disc">
+        <li><a class="font-medium text-blue-600 hover:underline" href="http://dspace.univ-setif.dz:8888/jspui/bitstream/123456789/31/1/Mouhoub%20nasser%20eddine.pdf">Mouhoub, Nasser Eddine. Algorithmes De Construction De Graphes Dans Les Problèmes D’ordonnancement De Projet. 2014. Université Ferhat Abbas - Sétif 1, Thèse de Doctorat.</a></li>
+      </ol>
+      <h2 class="text-2xl font-bold my-3">Auteur</h2>
+      <p>Faustin MILLET - <a class="font-medium text-blue-600 hover:underline" href="mailto:faustin.millet@universite-paris-saclay.fr">faustin.millet@universite-paris-saclay.fr</a></p>
+      <div class="my-6 flex gap-4">
+        <a href="/Modele_Liste_Tache.xlsx" class="px-4 py-3 rounded text-white bg-blue-700 hover:bg-blue-800">Téléchager le modèle</a>
+        <button id="btn-importfile" class="px-4 py-3 rounded text-white hover:bg-green-700 bg-green-600">Importer un fichier</button>
+      </div>
+      <div id="resultat">
+        <h2 class="text-2xl font-bold my-3">Résultat de la lecture et avertissement</h2>
+        <ol class="ml-9 list-disc"></ol>
+        <button id="btn-showgraph" class="disabled:bg-gray-400 disabled:text-gray-100 my-4 px-3 py-2 rounded text-white hover:bg-green-700 bg-green-600">Afficher le graphe</button>
+      </div>
+    </div>
+    <div id="cy"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

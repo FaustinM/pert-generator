@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#cy {
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  /** 
+  display: block;
+  **/
+}
+
+#resultat {
+  display: none;
+}
+
+.flex {
+  display: flex;
+}
+
+.cytoscape-navigator {
+  margin: 1rem;
+  height: 200px !important;
+  width: 200px !important;
+}
