@@ -10,13 +10,7 @@ export class NodePERT {
   moins: number | -1;
   plus: number | -1;
 
-  constructor({
-    id,
-    graph,
-  }: {
-    id: string;
-    graph?: Graph;
-  }) {
+  constructor({ id, graph }: { id: string; graph?: Graph }) {
     this.from = [];
     this.to = [];
 
@@ -29,8 +23,8 @@ export class NodePERT {
 
   delete(safe = false) {
     if (safe) {
-      while(this.from.length > 0) this.from.shift()?.delete()
-      while(this.to.length > 0) this.to.shift()?.delete()
+      while (this.from.length > 0) this.from.shift()?.delete();
+      while (this.to.length > 0) this.to.shift()?.delete();
     }
 
     for (const edge of this.from) edge.from.removeTo(edge);
@@ -69,8 +63,11 @@ export class NodePERT {
   }
 
   calculateMoins() {
-    if(this.moins === -1) {
-      this.moins = Math.max(...this.from.map(e => e.from.calculateMoins() + (e.data.duree || 0)), 0);
+    if (this.moins === -1) {
+      this.moins = Math.max(
+        ...this.from.map((e) => e.from.calculateMoins() + (e.data.duree || 0)),
+        0
+      );
     }
     return this.moins;
   }
@@ -93,17 +90,17 @@ export class NodePERT {
       let listeCritique = [];
       for (const edge of this.to) {
         const vPlus = edge.to.calculatePlus() - (edge.data.duree || 0);
-        if (vPlus < min){
+        if (vPlus < min) {
           min = vPlus;
           maxV = edge;
           listeCritique = [];
         }
 
-        if (min === vPlus){
+        if (min === vPlus) {
           listeCritique.push(edge);
         }
       }
-      listeCritique.forEach(v => v.data.critique_local = true);
+      listeCritique.forEach((v) => (v.data.critique_local = true));
       this.plus = maxV === null ? this.calculateMoins() : min;
     }
     // }
@@ -111,8 +108,7 @@ export class NodePERT {
   }
 
   addFrom(edge: Edge) {
-    if (this.graph === edge.graph)
-      this.from.push(edge);
+    if (this.graph === edge.graph) this.from.push(edge);
   }
 
   removeFrom(edge: Edge) {
@@ -121,8 +117,7 @@ export class NodePERT {
   }
 
   addTo(edge: Edge) {
-    if (this.graph === edge.graph)
-      this.to.push(edge);
+    if (this.graph === edge.graph) this.to.push(edge);
   }
 
   removeTo(edge: Edge) {
@@ -168,7 +163,8 @@ export class NodePERT {
 
   equalFrom(node: NodePERT) {
     if (node.from.length != this.from.length) return false;
-    for (const fp of node.from) if (!this.includesFromNode(fp.from)) return false;
+    for (const fp of node.from)
+      if (!this.includesFromNode(fp.from)) return false;
     return true;
   }
 

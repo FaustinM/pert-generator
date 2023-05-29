@@ -7,11 +7,13 @@ import popper from "cytoscape-popper";
 import "cytoscape-navigator/cytoscape.js-navigator.css";
 import { Graph, GraphPERT, TaskPERT } from "./PERT";
 import * as XLSX from "xlsx";
+import { SVGGantt, CanvasGantt } from 'gantt';
+import { generateGantt } from "./gantt";
 
 enum ResultatTypeParsing {
   Error,
   Warning,
-  Info
+  Info,
 }
 
 interface ResultatParsing {
@@ -49,21 +51,22 @@ const cy = cytoscape({
     })
     .selector("edge[?label]")
     .css({
-      "label": "data(label)",
+      label: "data(label)",
       "text-margin-y": "-20px",
-      "text-rotation": "autorotate"
+      "text-rotation": "autorotate",
     })
     .selector("edge[?alert]")
     .css({
       "line-color": "red",
-      "target-arrow-color": "red"
+      "target-arrow-color": "red",
     }),
 });
+window.cy = cy;
 
-function afficherResultat(resultats: ResultatParsing[]){
+function afficherResultat(resultats: ResultatParsing[]) {
   document.querySelector("#resultat > ol").innerHTML = "";
   const resultatEl = document.getElementById("resultat");
-  if(!resultatEl) return;
+  if (!resultatEl) return;
 
   let disabled = false;
   for (const resultat of resultats) {
@@ -86,97 +89,123 @@ function afficherResultat(resultats: ResultatParsing[]){
 
     if (disabled)
       document.getElementById("btn-showgraph")?.setAttribute("disabled", "");
-    else
-        document.getElementById("btn-showgraph")?.removeAttribute("disabled");
+    else document.getElementById("btn-showgraph")?.removeAttribute("disabled");
 
-    if (resultat.bold){
-      liEl.classList.add("font-bold")
+    if (resultat.bold) {
+      liEl.classList.add("font-bold");
     }
 
     resultatEl.children[1].appendChild(liEl);
   }
 
-  resultatEl.style.display = 'block';
-  
+  resultatEl.style.display = "block";
 }
 
 function readArrayBuffer(buffer: ArrayBuffer): Graph {
   const graph = new Graph();
   const workbook = XLSX.read(buffer, {
-    dense: true
+    dense: true,
   });
   const resultat: ResultatParsing[] = [];
   resultat.push({
     type: ResultatTypeParsing.Info,
-    message: `Fichier de ${workbook.Props?.Author}, édité par ${workbook.Props?.LastAuthor} le ${workbook.Props?.ModifiedDate?.toLocaleString('fr-fr')}`
-  })
+    message: `Fichier de ${workbook.Props?.Author}, édité par ${
+      workbook.Props?.LastAuthor
+    } le ${workbook.Props?.ModifiedDate?.toLocaleString("fr-fr")}`,
+  });
 
-  if (workbook.Sheets["TACHES"]){
+  if (workbook.Sheets["TACHES"]) {
     const sheet = workbook.Sheets["TACHES"] as any[];
     for (let i = 0; i < sheet.length; i++) {
-      if (sheet[i] && sheet[i][0] && (i !== 0 || sheet[i][0].v !== "ID TACHE")){
+      if (
+        sheet[i] &&
+        sheet[i][0] &&
+        (i !== 0 || sheet[i][0].v !== "ID TACHE")
+      ) {
         try {
-          graph.addNode(TaskPERT.parse(sheet[i].map(el => el.v)));
+          graph.addNode(TaskPERT.parse(sheet[i].map((el) => el.v)));
         } catch (e) {
           resultat.push({
             type: ResultatTypeParsing.Warning,
-            message: `La ligne ${i+1} a eu une erreur (${e})`,
-          })
+            message: `La ligne ${i + 1} a eu une erreur (${e})`,
+          });
         }
       } else {
         resultat.push({
           type: ResultatTypeParsing.Info,
-          message: `La ligne ${i+1} a été ignoré`,
-        })
+          message: `La ligne ${i + 1} a été ignoré`,
+        });
       }
     }
   } else {
     resultat.push({
       type: ResultatTypeParsing.Error,
-      message: "Il n'existe pas de feuille de calcul avec le nom 'TACHES'"
-    })
+      message: "Il n'existe pas de feuille de calcul avec le nom 'TACHES'",
+    });
   }
 
   graph.updateFrom();
 
   if (graph.hasMultipleEnd()) {
+    console.log(graph.hasMultipleEnd());
     resultat.push({
       type: ResultatTypeParsing.Warning,
-      message: "Il existe plusieurs noeuds sans antécédants, une correction automatique a été appliqué"
-    })
+      message:
+        "Il existe plusieurs noeuds sans successeurs, une correction automatique a été appliqué",
+    });
     graph.createDummyEnd();
   }
+
   if (graph.hasMultipleStart()) {
     resultat.push({
       type: ResultatTypeParsing.Warning,
-      message: "Il existe plusieurs noeuds sans successeurs, une correction automatique a été appliqué"
-    })
+      message:
+        "Il existe plusieurs noeuds sans antécédants, une correction automatique a été appliqué",
+    });
     graph.createDummyStart();
   }
 
   const graphPERT = graph.generatePERT();
   graphPERT.calculerValeur();
   graphPERT.calculerCheminCritique();
-  if(graphPERT._nodes.length > 0) graphPERT.renameNodesTopo();
-  else resultat.push({
-    type: ResultatTypeParsing.Error,
-    message: `Le graphe PERT est vide`,
-    bold: true
-  });
+
+  if (graphPERT._nodes.length > 0) graphPERT.renameNodesTopo();
+  else
+    resultat.push({
+      type: ResultatTypeParsing.Error,
+      message: `Le graphe PERT est vide`,
+      bold: true,
+    });
 
   resultat.push({
     type: ResultatTypeParsing.Info,
-    message: `${graphPERT.countFictif()} chemins fictifs / ${graphPERT.countNormal()} chemins normaux / ${graphPERT._nodes.length} noeuds`,
-    bold: true
+    message: `${graphPERT.countFictif()} chemins fictifs / ${graphPERT.countNormal()} chemins normaux / ${
+      graphPERT._nodes.length
+    } noeuds`,
+    bold: true,
   });
 
   afficherResultat(resultat);
+
   return graphPERT;
 }
 
-document.getElementById("btn-showgraph")?.addEventListener("click", e => {
+document.getElementById("btn-showgantt")?.addEventListener("click", (e) => {
+  new SVGGantt('#svg-gantt', generateGantt(window.graph), {
+    viewMode: 'day',
+    styleOptions: {
+      warning: "#65c16f",
+      danger: "#65c16f",
+    }
+  });
+
+  document.getElementById("pres").style.display = "none";
+  document.getElementById("gantt").style.display = "block";
+})
+
+document.getElementById("btn-showgraph")?.addEventListener("click", (e) => {
   window.graph.updateCytoscape(cy);
-  
+
   document.getElementById("pres").style.display = "none";
   document.getElementById("cy").style.display = "block";
   cy.layout({
@@ -296,25 +325,26 @@ document.getElementById("btn-showgraph")?.addEventListener("click", e => {
     removeCustomContainer: true, // destroy the container specified by user on plugin destroy
     rerenderDelay: 100, // ms to throttle rerender updates to the panzoom for performance
   });
-})
+});
 
 document.getElementById("btn-importfile")?.addEventListener("click", (e) => {
   e.preventDefault();
-  let input = document.createElement('input');
-  input.type = 'file';
-  input.accept = "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  input.onchange = _ => {
+  let input = document.createElement("input");
+  input.type = "file";
+  input.accept =
+    "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  input.onchange = (_) => {
     let files = Array.from(input.files);
     if (files.length > 0 && files[0]) {
       const reader = new FileReader();
       reader.readAsArrayBuffer(files[0]);
       reader.addEventListener("load", (e) => {
         const content = e.target?.result;
-        if (content){
+        if (content) {
           window.graph = readArrayBuffer(content);
         }
-      })
+      });
     }
   };
   input.click();
-})
+});

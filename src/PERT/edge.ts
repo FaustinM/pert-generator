@@ -1,4 +1,4 @@
-import { Graph } from './graph';
+import { Graph } from "./graph";
 import { NodePERT } from "./node";
 
 interface DataPayload {
@@ -13,7 +13,12 @@ export class Edge {
   graph: Graph;
   data: DataPayload;
 
-  constructor(graph: Graph, from: NodePERT, to: NodePERT, data: DataPayload = { fictif: false }) {
+  constructor(
+    graph: Graph,
+    from: NodePERT,
+    to: NodePERT,
+    data: DataPayload = { fictif: false }
+  ) {
     this.graph = graph;
     this.graph.addEdge(this);
 
@@ -23,8 +28,7 @@ export class Edge {
   }
 
   get label() {
-    if (this.data.name)
-      return `${this.data.name} : ${this.data.duree || 0}`;
+    if (this.data.name) return `${this.data.name} : ${this.data.duree || 0}`;
   }
 
   delete() {

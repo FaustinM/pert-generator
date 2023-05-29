@@ -1,4 +1,4 @@
-import { Edge } from './edge';
+import { Edge } from "./edge";
 import { GraphPERT } from "./graphPERT";
 import { NodePERT } from "./node";
 import { TaskPERT } from "./task";
@@ -163,7 +163,12 @@ export class Graph {
       graph.addNode(ai);
       graph.addNode(bi);
 
-      const edge = new Edge(graph, ai, bi, { fictif: false, duree: task.duree, name: task.id, description: task.description });
+      const edge = new Edge(graph, ai, bi, {
+        fictif: false,
+        duree: task.duree,
+        name: task.id,
+        description: task.description,
+      });
       ai.addTo(edge);
       bi.addFrom(edge);
     }
@@ -186,7 +191,7 @@ export class Graph {
     graph.transformerGe3();
     graph.transformerGe4();
     graph.transformerGe5(); // Ge5 (16 fif/17 som)
-    while(graph.generateGe6Classes().size > 0) graph.transformerGe6();
+    while (graph.generateGe6Classes().size > 0) graph.transformerGe6();
     graph.transformerGe4();
     graph.cleanFictif();
 

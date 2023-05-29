@@ -8,21 +8,26 @@ export class GraphPERT extends Graph {
   }
 
   countFictif() {
-    return this._edges.filter(v => v.data.fictif).length;
+    return this._edges.filter((v) => v.data.fictif).length;
   }
 
   countNormal() {
-    return this._edges.filter(v => !v.data.fictif).length;
+    return this._edges.filter((v) => !v.data.fictif).length;
   }
 
   calculerValeur() {
-    this._nodes.find(v => v.to.length === 0)?.calculateMoins();
-    this._nodes.find(v => v.from.length === 0)?.calculatePlus();
+    this._nodes.find((v) => v.to.length === 0)?.calculateMoins();
+    this._nodes.find((v) => v.from.length === 0)?.calculatePlus();
   }
 
   calculerCheminCritique() {
     for (const edge of this._edges) {
-      if (edge.from.marge === 0 && edge.to.marge === 0 && edge.data.critique_local) edge.data.alert = true;
+      if (
+        edge.from.marge === 0 &&
+        edge.to.marge === 0 &&
+        edge.data.critique_local
+      )
+        edge.data.alert = true;
     }
   }
 
@@ -33,24 +38,24 @@ export class GraphPERT extends Graph {
     let i = -1;
     const file: NodePERT[] = [];
 
-    file.push(this._nodes.find(v => v.from.length === 0) || this._nodes[0]);
+    file.push(this._nodes.find((v) => v.from.length === 0) || this._nodes[0]);
 
-    while(file.length > 0){
+    while (file.length > 0) {
       i++;
       const s = file.shift();
       //@ts-ignore
       s.id = i.toString();
       //@ts-ignore
-      for (const edge of s.to){
+      for (const edge of s.to) {
         edge.data.topo = true;
-        if (!edge.to.from.find(v => !v.data.topo)){
+        if (!edge.to.from.find((v) => !v.data.topo)) {
           file.push(edge.to);
         }
       }
     }
 
-    this._nodes.find(v => v.from.length === 0).id = "D";
-    this._nodes.find(v => v.to.length === 0).id = "F";
+    this._nodes.find((v) => v.from.length === 0).id = "D";
+    this._nodes.find((v) => v.to.length === 0).id = "F";
   }
 
   /**
@@ -61,17 +66,17 @@ export class GraphPERT extends Graph {
     const file: NodePERT[] = [];
     const alreadyTag: NodePERT[] = [];
 
-    file.push(this._nodes.find(v => v.from.length === 0) || this._nodes[0]);
+    file.push(this._nodes.find((v) => v.from.length === 0) || this._nodes[0]);
     alreadyTag.push(file[0]);
 
-    while(file.length > 0) {
+    while (file.length > 0) {
       i++;
       const s = file.shift();
       //@ts-ignore
       s.id = i.toString();
       //@ts-ignore
       for (const neigh of s.to) {
-        if (!alreadyTag.includes(neigh.to)){
+        if (!alreadyTag.includes(neigh.to)) {
           file.push(neigh.to);
           alreadyTag.push(neigh.to);
         }
@@ -79,7 +84,7 @@ export class GraphPERT extends Graph {
     }
 
     alreadyTag[0].id = "D";
-    alreadyTag[alreadyTag.length-1].id = "F";
+    alreadyTag[alreadyTag.length - 1].id = "F";
   }
 
   transformerGe2() {
@@ -89,7 +94,12 @@ export class GraphPERT extends Graph {
       if (group[0].id.startsWith("b")) {
         for (let index = 1; index < group.length; index++) {
           for (const fromValue of group[index].from) {
-            const edge = new Edge(this, fromValue.from, group[0], fromValue.data);
+            const edge = new Edge(
+              this,
+              fromValue.from,
+              group[0],
+              fromValue.data
+            );
             group[0].addFrom(edge);
             fromValue.from.addTo(edge);
           }
@@ -112,7 +122,7 @@ export class GraphPERT extends Graph {
             group[0].addTo(edge);
             toValue.to.addFrom(edge);
           }
-          
+
           group[index].delete(true);
           this.removeNode(group[index]);
         }
@@ -159,11 +169,11 @@ export class GraphPERT extends Graph {
     const map = new Map<NodePERT, NodePERT[]>();
     for (const node of this._nodes) {
       if (!node.id.startsWith("b_")) continue;
-      const list = []
+      const list = [];
       for (const n of this._nodes) {
         if (node !== n) {
-          if (node.checkNodeIncludesInTo(n)){
-            list.push(n)
+          if (node.checkNodeIncludesInTo(n)) {
+            list.push(n);
           }
         }
       }
@@ -174,9 +184,9 @@ export class GraphPERT extends Graph {
 
   transformerGe6() {
     const map = this.generateGe6Classes();
-    for (const [key, value] of map){
-      for(const v of value){
-        while(v.to.length > 0) v.to[0].delete();
+    for (const [key, value] of map) {
+      for (const v of value) {
+        while (v.to.length > 0) v.to[0].delete();
 
         const edge = new Edge(this, v, key, { fictif: true });
         v.addTo(edge);
@@ -189,11 +199,11 @@ export class GraphPERT extends Graph {
     const map = new Map<NodePERT, NodePERT[]>();
     for (const node of this._nodes) {
       if (!node.id.startsWith("a_")) continue;
-      const list = []
+      const list = [];
       for (const n of this._nodes) {
         if (node !== n) {
-          if (node.checkNodeIncludesInFrom(n)){
-            list.push(n)
+          if (node.checkNodeIncludesInFrom(n)) {
+            list.push(n);
           }
         }
       }
@@ -205,7 +215,10 @@ export class GraphPERT extends Graph {
   cleanFictif() {
     const edgeList = [...this._edges];
     for (const edge of edgeList) {
-      if(edge.data.fictif && edge.from.to.some(v => !v.data.fictif && v.to === edge.to)){
+      if (
+        edge.data.fictif &&
+        edge.from.to.some((v) => !v.data.fictif && v.to === edge.to)
+      ) {
         edge.delete();
       }
     }

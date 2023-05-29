@@ -1,4 +1,4 @@
-import { Edge } from './edge';
+import { Edge } from "./edge";
 import { Graph } from "./graph";
 import { NodePERT } from "./node";
 
